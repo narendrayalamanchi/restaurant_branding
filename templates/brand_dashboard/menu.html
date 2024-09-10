@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %} Menu List {% endblock title %}
+{% block body %}
+
+<!-- Left Sidebar -->
+<div class="sidebar">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'category' %}">Edit Categories</a>
+        </li>
+         <li class="nav-item active">
+            <a class="nav-link" href="{% url 'menu' %}">Edit Menu </a>
+        </li>
+    </ul>
+</div>
+
+
+<!-- Main Content -->
+<div class="content">
+    <div class="lg-5">
+
+            <h3> Menu List
+                <button type="button" class="btn btn-primary" id="addMenuBtn">Add Menu Item</button>
+            </h3>
+
+            <p> You can change the order of Menu simply by drag and drop.</p>
+            <table class = "table menuitems">
+                <thead>
+                    <th>Item Name</th>
+                    <th>Recipe</th>
+                    <th>price</th>
+                    <th>Image</th>
+                </thead>
+                <tbody class="table-group-divider">
+                    {% with previous_category=None %}
+                        {% for item in menu  %}
+                            {% if item.category.name != previous_category %}
+                                <tr>
+                                    <td colspan="5"><strong>{{ item.category.name }}</strong></td>
+                                </tr>
+                                {% with item.category.name as previous_category %}
+                                {% endwith %}
+                            {% endif %}
+
+                            <tr>
+                                 <td>{{item.name}}</td>
+                                 <td>{{item.recipe_details}}</td>
+                                 <td>{{item.price}}</td>
+                                 <td> <img src="https://restaurant-brand.s3.us-east-2.amazonaws.com/{{item.image}}" alt="No image" /></td>
+                            </tr>
+                        {% endfor%}
+                    {% endwith %}
+                </tbody>
+            </table>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="createMenuPopup" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="myModalLabel">Create Menu Form</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="MenuModalBody">
+        <!-- Form will be loaded here dynamically -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    document.getElementById('addMenuBtn').addEventListener('click', function() {
+        fetch('{% url "menu-form" %}')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('MenuModalBody').innerHTML = data;
+                var categoryForm = new bootstrap.Modal(document.getElementById('createMenuPopup'), {});
+                categoryForm.show();
+            });
+    });
+
+    document.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var categoryForm = bootstrap.Modal.getInstance(document.getElementById('createMenuPopup'));
+                categoryForm.hide();
+
+                //const html = "<li class='category-item' data-id="+data.category.id+" data-order="+data.category.order+" draggable='true'>"+data.category.name+"</li>"
+                //$(".category-list").append(html)
+                //changeOrderEventListener("last")
+
+            } else {
+                document.getElementById('MenuModalBody').innerHTML = data.errors;
+            }
+        });
+    });
+</script>
+{% endblock body %}

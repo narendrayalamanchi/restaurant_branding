@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block title %} Categories List {% endblock title %}
+{% block body %}
+
+
+<!-- Left Sidebar -->
+<div class="sidebar">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+        </li>
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'category' %}">Edit Categories</a>
+        </li>
+         <li class="nav-item">
+            <a class="nav-link" href="{% url 'menu' %}">Edit Menu </a>
+        </li>
+    </ul>
+</div>
+
+
+<!-- Main Content -->
+<div class="content">
+    <div class="lg-5">
+
+            <h3> Category
+                <button type="button" class="btn btn-primary" id="createCategoryBtn">Create Category</button>
+            </h3>
+
+            <p> You can change the order of categories simply by drag and drop.</p>
+            {% if categories|length > 0 %}
+                <ul class="category-list" id="category-list">
+                    {% for category in categories  %}
+                        <li class="category-item" data-id="{{ category.id }}" data-order="{{ category.order }}" draggable="true">{{category.name}}</li>
+                    {% endfor%}
+                </ul>
+            {% else %}
+                <div class="datanotfound">
+                    <h3> There are no categories created</h3>
+                </div>
+            {% endif %}
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="createCategoryPopup" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="myModalLabel">Create Category Form</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="categoryModalBody">
+        <!-- Form will be loaded here dynamically -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    draggedItem = null;
+    dropTarget = null;
+    function changeOrderEventListener(items){
+         selectedElements = null;
+
+        if(items === "all"){
+            selectedElements = document.querySelectorAll('.category-item');
+        }
+        else{
+            selectedElements = document.querySelectorAll('.category-item:last-child');
+        }
+        selectedElements.forEach(item=>{
+            item.addEventListener('dragstart', function(e){
+                draggedItem = this;
+            })
+            item.addEventListener('dragover', function(e){
+                e.preventDefault();
+            })
+            item.addEventListener('drop', function(e){
+                e.preventDefault();
+                dropTarget=this;
+
+                if (draggedItem !== dropTarget) {
+
+                    swapElements(draggedItem, dropTarget);
+                    updateCategoryOrder(draggedItem, dropTarget)
+
+                }
+
+            })
+        })
+    }
+    changeOrderEventListener("all")
+
+    function swapElements(dragged, dropped) {
+        const parent = dragged.parentNode;
+
+        const draggedNextSibling = dragged.nextSibling === dropped ? dragged : dragged.nextSibling;
+        const droppedNextSibling = dropped.nextSibling === dragged ? dropped : dropped.nextSibling;
+      
+        parent.insertBefore(dragged, droppedNextSibling);
+        parent.insertBefore(dropped, draggedNextSibling);
+
+    }
+
+    function updateCategoryOrder(draggedItem, dropTarget){
+        const newOrder = {
+            dragged_id: draggedItem.getAttribute("data-id"),
+            dragged_order:draggedItem.getAttribute("data-order"),
+            drop_id: dropTarget.getAttribute("data-id"),
+            drop_order:dropTarget.getAttribute("data-order")
+        }
+        fetch("{% url 'update-category-order' %}", {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body: JSON.stringify(newOrder)
+        }).then(response=>response.json())
+          .then(data=>{
+            if(data.success){
+                console.log("Order updated successfully!")
+            }
+            else{
+                console.log("Failed to update order")
+            }
+          })
+         
+      
+    }
+
+    document.getElementById('createCategoryBtn').addEventListener('click', function() {
+        fetch('{% url "category-form" %}')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('categoryModalBody').innerHTML = data;
+                var categoryForm = new bootstrap.Modal(document.getElementById('createCategoryPopup'), {});
+                categoryForm.show();
+            });
+    });
+
+    document.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var categoryForm = bootstrap.Modal.getInstance(document.getElementById('createCategoryPopup'));
+                categoryForm.hide();
+                // Hiding No data found Block
+                $(".datanotfound").hide()
+                const html = "<li class='category-item' data-id="+data.category.id+" data-order="+data.category.order+" draggable='true'>"+data.category.name+"</li>"
+                $(".category-list").append(html)
+                changeOrderEventListener("last")
+
+            } else {
+                document.getElementById('categoryModalBody').innerHTML = data.errors;
+            }
+        });
+    });
+</script>
+
+{% endblock body %}

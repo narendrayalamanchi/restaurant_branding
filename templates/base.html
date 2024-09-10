@@ -1,0 +1,42 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+    <head>
+        <title> {% block title %} {% endblock title %} </title>
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link href={% static 'css/authentication.css'%} rel="stylesheet" >
+    </head>
+    <body>
+
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">Restaurant Branding</a>
+               
+                <div class="d-flex" role="search">
+                    {% if request.session.is_logged %}
+                        <h5 class="text-black mt-3 mx-2">Hi, {{ request.session.username }}</h5>
+                        <a href="{% url 'signout' %}" class="btn btn-light mt-2 mx-2"> Sign Out <i class="fa fa-sign-out" aria-hidden="true"></i></a>
+                    {% else %}
+                        <a class="navbar-signin" href="{% url 'login' %}">
+                            <i class="fa fa-sign-in" aria-hidden="true"></i>
+                            Sign In
+                        </a>
+                        <a class="navbar-register" href="{% url 'signup' %}">
+                            <i class="fa fa-user-plus" aria-hidden="true"></i>
+                            Sign Up
+                        </a>
+                    {% endif %}
+                   
+                </div>
+            </div>
+        </nav>
+        {% block body %}
+        {% endblock body %}
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.slim.min.js" integrity="sha512-sNylduh9fqpYUK5OYXWcBleGzbZInWj8yCJAU57r1dpSK9tP2ghf/SRYCMj+KsslFkCOt3TvJrX2AV/Gc3wOqA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    </body>
+</html>

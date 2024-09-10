@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %} Restaurant Branding {% endblock title %}
+{% block body %}
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-8 col-md-12 col-sm-10">
+            <h2>You can create online applications for your restaurants and deliver food to your customers within a few minutes</h2>
+            <br><br>
+            <h4> To access the Branding for the existing users <a href="{% url 'login' %}">login</a></h4>
+            <br>
+            <h4> New for Branding <a href="{% url 'signup' %}">signup</a></h4>
+        </div>
+    </div>
+</div>
+
+{% endblock body %}
