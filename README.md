@@ -1,23 +1,25 @@
-# restaurant_branding
+** Introduction **
 The custom restaurant branding platform that enables restaurants to create their own online web application within hours. By adding different food categories and menu items under each category, restaurants can quickly set up an online presence, facilitating food delivery and order management. 
 
 
-# Usage 
+** Usage **
 
-git clone https://github.com/narendrayalamanchi/restaurant_branding.git
+** First clone the repo **
 
-# Create Virtual environment and Install neccessary python libraries:
+- git clone https://github.com/narendrayalamanchi/restaurant_branding.git
+
+** Create Virtual environment and Install neccessary python libraries: **
 Run this command inside the project
 - python -m venv virtual 
 - .\virtual\Scripts\activate
 - pip install -r requirements.txt
 
-# Then generate makemigrations and migrate
+** Then generate makemigrations and migrate**
 
 - python manage.py makemigrations
 - python manage.py migrate
 
-# To start the project
+** To start the project **
 
 - python manage.py runserver
 
