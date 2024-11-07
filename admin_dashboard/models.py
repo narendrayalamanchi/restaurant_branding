@@ -1,11 +1,12 @@
 from django.db import models
 from datetime import datetime
+from django.contrib.auth.hashers import make_password, check_password
+
 def brand_logo_upload_path(instance, filename):
-    return f'{instance.id}/{datetime.now().strftime("%Y%m%d")}_{filename}'
+    return f'{instance.title}/{datetime.now().strftime("%Y%m%d")}_{filename}'
 class BrandsDetails(models.Model):
     title = models.CharField(max_length=15)
     logo = models.FileField(upload_to=brand_logo_upload_path)
-
     def __str__(self):
         return self.title
 
@@ -15,9 +16,13 @@ class BrandsDetails(models.Model):
 class BrandUsers(models.Model):
     username = models.CharField(max_length=10)
     email = models.EmailField(max_length=50)
-    password = models.CharField(max_length=255)
+    password = models.CharField(max_length=128)
     brand = models.ForeignKey(BrandsDetails, on_delete=models.CASCADE)
 
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
     def __str__(self):
         return self.email
 

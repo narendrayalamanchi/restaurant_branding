@@ -2,7 +2,7 @@ from django.shortcuts import render,redirect
 from django.http import JsonResponse
 from .models import BrandUsers, BrandsDetails, MenuCategories, MenuItem
 from .forms import SignupForm,LoginForm, CategoryForm, MenuForm
-from django.contrib.auth import logout
+from django.contrib.auth import login, logout
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core import serializers
@@ -13,7 +13,7 @@ def index(request):
 
 def signout(request):
     logout(request)
-    return render(request,'index.html')
+    return redirect('index')
                   
 def signup(request):
     response = {"success": True}
@@ -21,10 +21,15 @@ def signup(request):
         form = SignupForm(request.POST, request.FILES)
 
         if form.is_valid():
-            form.save()
-            return redirect('login')
+
+            if BrandUsers.objects.filter(email=form.cleaned_data.get('email')).exists():
+                response["message"] = "Email already exists"
+                response["success"] = False
+            else:
+                form.save()
+                return redirect('login')
         else:
-            response["message"] = "Invalid Details."
+            response["message"] = "Invalid Details"
             response["success"] = False
     else:
         form = SignupForm()
@@ -32,7 +37,7 @@ def signup(request):
 
     return render(request,'brand_auth/register.html', response)
 
-def login(request):
+def brand_login(request):
     response = {"success":True}
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -40,14 +45,20 @@ def login(request):
         if form.is_valid():
             email = form.cleaned_data.get('email')
             password = form.cleaned_data.get('password')
-            users = BrandUsers.objects.filter(email=email, password = password)
-            if users.exists():
+            try:
+                user = BrandUsers.objects.get(email=email)
+            except BrandUsers.DoesNotExist:
+                response["message"] = "User with this email does not exist"
+                response["success"] = False
+
+            if user.check_password(password):
                 request.session["is_logged"] = True
-                request.session["username"] = users[0].username
-                request.session["brand"] = users[0].brand.id
+                request.session["username"] = user.username
+                request.session["brand"] = user.brand.id
+                request.session["brandlogo"] = str(user.brand.logo)
                 return redirect('dashboard')
             else:
-                response["message"] = "Invalid Credentials/No User Found"
+                response["message"] = "Invalid Password"
                 response["success"] = False
     else:
         form = LoginForm

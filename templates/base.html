@@ -12,23 +12,32 @@
 
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
-                <a class="navbar-brand" href="/">Restaurant Branding</a>
-               
-                <div class="d-flex" role="search">
-                    {% if request.session.is_logged %}
-                        <h5 class="text-black mt-3 mx-2">Hi, {{ request.session.username }}</h5>
-                        <a href="{% url 'signout' %}" class="btn btn-light mt-2 mx-2"> Sign Out <i class="fa fa-sign-out" aria-hidden="true"></i></a>
+                <div class="navbar-header">
+                    {% if request.session.is_logged  %}
+                   <a class="navbar-brand" href="/dashboard">
+                       <img src="https://restaurant-brand.s3.us-east-2.amazonaws.com/{{ request.session.brandlogo }}"
+                                                     alt="Brand Logo" style="height: 50px;">
+                    </a>
                     {% else %}
-                        <a class="navbar-signin" href="{% url 'login' %}">
-                            <i class="fa fa-sign-in" aria-hidden="true"></i>
-                            Sign In
-                        </a>
-                        <a class="navbar-register" href="{% url 'signup' %}">
-                            <i class="fa fa-user-plus" aria-hidden="true"></i>
-                            Sign Up
-                        </a>
+                        <a class="navbar-brand" href="/dashboard">Restaurant Branding</a>
                     {% endif %}
-                   
+
+                    <div class="d-flex" role="search">
+                        {% if request.session.is_logged   %}
+                            <h5 class="text-black mt-3 mx-2">Hi, {{ request.session.username }}</h5>
+                            <a href="{% url 'signout' %}" class="btn btn-light mt-2 mx-2"> Sign Out <i class="fa fa-sign-out" aria-hidden="true"></i></a>
+                        {% else %}
+                            <a class="navbar-signin" href="{% url 'login' %}">
+                                <i class="fa fa-sign-in" aria-hidden="true"></i>
+                                Sign In
+                            </a>
+                            <a class="navbar-register" href="{% url 'signup' %}">
+                                <i class="fa fa-user-plus" aria-hidden="true"></i>
+                                Sign Up
+                            </a>
+                        {% endif %}
+                    </div>
+
                 </div>
             </div>
         </nav>
