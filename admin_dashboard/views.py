@@ -1,11 +1,12 @@
 from django.shortcuts import render,redirect
 from django.http import JsonResponse
-from .models import BrandUsers, BrandsDetails, MenuCategories, MenuItem
+from .models import BrandUsers, BrandsDetails, MenuCategories, MenuItem, BrandAddress
 from .forms import SignupForm,LoginForm, CategoryForm, MenuForm
-from django.contrib.auth import login, logout
+from django.contrib.auth import logout
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core import serializers
+from django.contrib.gis.geos import Point
 
 # Create your views here.
 def index(request):
@@ -55,6 +56,7 @@ def brand_login(request):
                 request.session["is_logged"] = True
                 request.session["username"] = user.username
                 request.session["brand"] = user.brand.id
+                request.session["brandname"] = user.brand.title
                 request.session["brandlogo"] = str(user.brand.logo)
                 return redirect('dashboard')
             else:
@@ -68,7 +70,6 @@ def brand_login(request):
 
 def dashboard(request):
     cat = MenuCategories.objects.filter(brand=request.session["brand"])
-    # print(cat)
     return render(request,'brand_dashboard/dashboard.html',{"categories": cat})
 
 def create_category_form_view(request):
@@ -126,5 +127,24 @@ def update_category_order(request):
 
 def menu(request):
     menu_items = MenuItem.objects.filter(category__brand=request.session["brand"]).order_by('category__order','order')
-    print(menu_items)
     return render(request, "brand_dashboard/menu.html", {"menu": menu_items})
+
+def locations(request):
+    locations = BrandAddress.objects.filter(brand=request.session["brand"]).order_by('-id')
+    return render(request, 'brand_dashboard/locations.html', {"locations": locations })
+
+def addbrandaddress(request):
+    data = json.loads(request.body)
+    address = data.get('address')
+    lon = data.get('lon')
+    lat = data.get('lat')
+    location = Point(float(lon), float(lat))
+    brand_instance = BrandsDetails.objects.get(id=request.session["brand"])
+    res = BrandAddress.objects.create(brand=brand_instance,address=address,location=location)
+
+    return JsonResponse({'success': True,'id': res.id})
+
+def deletebrandaddress(request):
+    data = json.loads(request.body)
+    BrandAddress.objects.filter(id=data.get('id')).delete()
+    return JsonResponse({'success': True})

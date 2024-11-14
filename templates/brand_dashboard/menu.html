@@ -2,21 +2,8 @@
 {% block title %} Menu List {% endblock title %}
 {% block body %}
 
-<!-- Left Sidebar -->
-<div class="sidebar">
-    <ul class="nav flex-column">
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'category' %}">Edit Categories</a>
-        </li>
-         <li class="nav-item active">
-            <a class="nav-link" href="{% url 'menu' %}">Edit Menu </a>
-        </li>
-    </ul>
-</div>
-
+{% include 'brand_dashboard/leftsidebar.html' %}
+{% load custom_filters %}
 
 <!-- Main Content -->
 <div class="content">
@@ -26,7 +13,6 @@
                 <button type="button" class="btn btn-primary" id="addMenuBtn">Add Menu Item</button>
             </h3>
 
-            <p> You can change the order of Menu simply by drag and drop.</p>
             <table class = "table menuitems">
                 <thead>
                     <th>Item Name</th>
@@ -35,24 +21,21 @@
                     <th>Image</th>
                 </thead>
                 <tbody class="table-group-divider">
-                    {% with previous_category=None %}
-                        {% for item in menu  %}
-                            {% if item.category.name != previous_category %}
-                                <tr>
-                                    <td colspan="5"><strong>{{ item.category.name }}</strong></td>
-                                </tr>
-                                {% with item.category.name as previous_category %}
-                                {% endwith %}
-                            {% endif %}
-
+                    {% for item in menu  %}
+                        {% if item.category.name != previous_category %}
                             <tr>
-                                 <td>{{item.name}}</td>
-                                 <td>{{item.recipe_details}}</td>
-                                 <td>{{item.price}}</td>
-                                 <td> <img src="https://restaurant-brand.s3.us-east-2.amazonaws.com/{{item.image}}" alt="No image" /></td>
+                                <td colspan="5"><strong>{{ item.category.name }}</strong></td>
                             </tr>
-                        {% endfor%}
-                    {% endwith %}
+                            {% update_previous_category item.category.name %}
+                        {% endif %}
+
+                        <tr>
+                                <td>{{item.name}}</td>
+                                <td>{{item.recipe_details}}</td>
+                                <td>{{item.price}}</td>
+                                <td> <img src="{% get_aws_s3_base_url %}/{{item.image}}" alt="No image" /></td>
+                        </tr>
+                    {% endfor%}
                 </tbody>
             </table>
 
@@ -75,6 +58,9 @@
 </div>
 
 <script>
+
+    document.getElementById("sidebar-menu").classList.add("active");
+
     document.getElementById('addMenuBtn').addEventListener('click', function() {
         fetch('{% url "menu-form" %}')
             .then(response => response.text())

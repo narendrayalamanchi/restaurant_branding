@@ -2,22 +2,7 @@
 {% block title %} Categories List {% endblock title %}
 {% block body %}
 
-
-<!-- Left Sidebar -->
-<div class="sidebar">
-    <ul class="nav flex-column">
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-        </li>
-        <li class="nav-item active">
-            <a class="nav-link" href="{% url 'category' %}">Edit Categories</a>
-        </li>
-         <li class="nav-item">
-            <a class="nav-link" href="{% url 'menu' %}">Edit Menu </a>
-        </li>
-    </ul>
-</div>
-
+{% include 'brand_dashboard/leftsidebar.html' %}
 
 <!-- Main Content -->
 <div class="content">
@@ -59,6 +44,8 @@
 </div>
 
 <script>
+    document.getElementById("sidebar-categories").classList.add("active");
+
     draggedItem = null;
     dropTarget = null;
     function changeOrderEventListener(items){

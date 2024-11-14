@@ -3,4 +3,6 @@ django-crispy-forms
 crispy-bootstrap5
 boto3
 django-storages==1.11.1
-python-dotenv
+psycopg2==2.9.10
+django-environ
+django-hosts==6.0

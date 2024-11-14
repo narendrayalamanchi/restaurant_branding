@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %} Brand Dashboard {% endblock title %}
+{% block body %}
+
+{% include 'brand_dashboard/leftsidebar.html' %}
+
+<!-- Main Content -->
+<div class="content">
+
+    <h3> Add Serving Location: </h3>
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon1"><i class="fa-solid fa-magnifying-glass"></i></span>
+        <input type="text" class="form-control" id="search-locations" placeholder="Enter address">
+    </div>
+    <div class="input-group mb-3" style="position: relative;">
+        <div id="suggestions-dropdown">
+        </div>
+    </div>
+    
+    <div class="location-list">    
+        {% for loc in locations  %}
+            <button class="locationcard-button" key-id={{loc.id}}>
+                <i class="fa-solid fa-location-dot"></i>
+                {{loc.address}}
+                <span class="delete-location" onclick="deleteLocation(this)"><i class="fa-solid fa-trash"></i></span>
+            </button>
+               
+        {% endfor%}
+    </div>
+
+</div>
+
+<script>
+    document.getElementById("sidebar-locations").classList.add("active");
+
+    const input = document.getElementById('search-locations');
+    const suggestionsDropdown = document.getElementById('suggestions-dropdown');
+
+    input.addEventListener('input', async (event) => {
+        const query = event.target.value;
+        suggestionsDropdown.innerHTML = ''
+
+        if (query.length > 2) {
+            const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&countrycodes=us`;
+            const response = await fetch(url);
+            const data = await response.json();
+            //console.log("data",data)
+            const suggestions = data.slice(0, 5); // Limit to top 5 suggestions
+            suggestions.forEach(suggestion => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.className = 'suggestion-item';
+                suggestionItem.textContent = suggestion.display_name;
+                
+                // Click event to populate input and clear dropdown
+                suggestionItem.addEventListener('click', () => {
+                   // input.value = suggestion.display_name;
+
+                    console.log("suggestion",suggestion)
+                    fetch("{% url 'addbrandaddress' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken 
+                        },
+                        body: JSON.stringify({
+                            address: suggestion.display_name,
+                            lon: suggestion.lon,
+                            lat: suggestion.lat
+                        }),
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                           $(".location-list").prepend(`<button class="locationcard-button" key-id=`+data.id+`><i class="fa-solid fa-location-dot"></i>`+suggestion.display_name+`<span class="delete-location" onclick="deleteLocation(this)"><i class="fa-solid fa-trash"></i></span></button>`);
+                        })
+                        .catch(error => {
+                            console.error('Fetch error:', error);
+                        });
+
+                    suggestionsDropdown.innerHTML = ''; // Clear suggestions
+                });
+
+                suggestionsDropdown.appendChild(suggestionItem);
+            });
+        
+        }
+    });
+
+    //Close event when clicking outside of address suggestions dropdown
+    document.addEventListener('click', (event) => {
+        if (!input.contains(event.target) && !suggestionsDropdown.contains(event.target)) {
+            suggestionsDropdown.innerHTML = '';
+        }
+    });
+
+    function deleteLocation(event){
+
+        fetch("{% url 'deletebrandaddress' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken 
+            },
+            body: JSON.stringify({
+                id: $(event).parent().attr("key-id")
+            }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                $(event).parent().remove(); // removing location 
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+
+    }
+</script>
+
+{% endblock body %}
