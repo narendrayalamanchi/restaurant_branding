@@ -1,42 +1,75 @@
 {% load static %}
+{% load custom_filters %}
 <!doctype html>
 <html lang="en">
     <head>
         <title> {% block title %} {% endblock title %} </title>
 
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
         <link href={% static 'css/authentication.css'%} rel="stylesheet" >
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.slim.min.js" integrity="sha512-sNylduh9fqpYUK5OYXWcBleGzbZInWj8yCJAU57r1dpSK9tP2ghf/SRYCMj+KsslFkCOt3TvJrX2AV/Gc3wOqA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     </head>
     <body>
 
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
-                <a class="navbar-brand" href="/">Restaurant Branding</a>
-               
-                <div class="d-flex" role="search">
-                    {% if request.session.is_logged %}
-                        <h5 class="text-black mt-3 mx-2">Hi, {{ request.session.username }}</h5>
-                        <a href="{% url 'signout' %}" class="btn btn-light mt-2 mx-2"> Sign Out <i class="fa fa-sign-out" aria-hidden="true"></i></a>
+                <div class="navbar-header">
+                    {% if request.session.is_logged  %}
+                   <a class="navbar-brand" href="/dashboard">
+                    
+                       <img src="{% get_aws_s3_base_url %}/{{ request.session.brandlogo }}"
+                                                     alt="Brand Logo" style="height: 50px;" />
+                    </a>
                     {% else %}
-                        <a class="navbar-signin" href="{% url 'login' %}">
-                            <i class="fa fa-sign-in" aria-hidden="true"></i>
-                            Sign In
-                        </a>
-                        <a class="navbar-register" href="{% url 'signup' %}">
-                            <i class="fa fa-user-plus" aria-hidden="true"></i>
-                            Sign Up
-                        </a>
+                        <a class="navbar-brand" href="/dashboard">Restaurant Branding</a>
                     {% endif %}
-                   
+
+                    <div class="d-flex" role="search">
+                        {% if request.session.is_logged   %}
+                            <h5 class="text-black mt-3 mx-2">Hi, {{ request.session.username }}</h5>
+                            <a href="" class="btn btn-light mt-2 mx-2" id="application_domain_url" target="_blank"> Checkout Your App </a>
+                            <a href="{% url 'signout' %}" class="btn btn-light mt-2 mx-2"> Sign Out <i class="fa fa-sign-out" aria-hidden="true"></i></a>
+                        {% else %}
+                            <a class="navbar-signin" href="{% url 'login' %}">
+                                <i class="fa fa-sign-in" aria-hidden="true"></i>
+                                Sign In
+                            </a>
+                            <a class="navbar-register" href="{% url 'signup' %}">
+                                <i class="fa fa-user-plus" aria-hidden="true"></i>
+                                Sign Up
+                            </a>
+                        {% endif %}
+                    </div>
+
                 </div>
             </div>
         </nav>
         {% block body %}
         {% endblock body %}
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.slim.min.js" integrity="sha512-sNylduh9fqpYUK5OYXWcBleGzbZInWj8yCJAU57r1dpSK9tP2ghf/SRYCMj+KsslFkCOt3TvJrX2AV/Gc3wOqA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <script>
+            $("#application_domain_url").attr("href","http://{{ request.session.brandname }}."+window.location.host);
 
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Check if this cookie string begins with the name we want
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            
+            // Retrieve the CSRF token from cookies
+            const csrftoken = getCookie('csrftoken');
+        </script>
     </body>
 </html>

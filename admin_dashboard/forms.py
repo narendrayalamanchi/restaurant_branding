@@ -14,6 +14,7 @@ class SignupForm(forms.ModelForm):
         
     def save(self, commit=True):
         user = super(SignupForm, self).save(commit=False)
+        user.set_password(self.cleaned_data['password'])
         brand_title = self.cleaned_data.get('brand_title')
         brand_logo = self.cleaned_data.get('brand_logo')
         brand = BrandsDetails.objects.create(
