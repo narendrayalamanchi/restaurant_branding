@@ -3,15 +3,15 @@
     <div class="container d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-3">
             <h1 class="h5 mb-0">{{request.session.brandname}}</h1>
-            <span class="text-muted">Enter delivery address</span>
+            <span class="text-muted" id="delivery-address-point">Enter delivery address</span>
         </div>
         <div class="input-group" style="max-width: 400px;">
             
             <input type="text" class="form-control" placeholder="Search Menu Items">
         </div>
-        <button class="btn btn-outline-secondary position-relative">
+        <button class="btn btn-outline-secondary position-relative" onclick="toggleCartSidebar()">
             <i class="fa-solid fa-cart-shopping"></i>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">1</span>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cart-total-quantity-display">{{cart_total}}</span>
         </button>
     </div>
 </header>

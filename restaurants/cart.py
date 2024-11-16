@@ -6,6 +6,9 @@ from admin_dashboard.models import MenuItem
 from .models import RestaurantUsers,Cart,CartItem
 import json
 from .views import load_custom_user
+from django.core import serializers
+from .serializer import CartItemSerializer
+from rest_framework.response import Response
 
 @load_custom_user
 def add_to_cart(request):
@@ -16,7 +19,7 @@ def add_to_cart(request):
         cart = get_user_cart(request.user)
         upd_quantity = add_item_to_cart(cart, menu_item.id, quantity=1)
 
-        return JsonResponse({"status":"success","quantity":upd_quantity})
+        return JsonResponse({"status":"success","quantity":upd_quantity, "cart_total": cart.total_items})
     except MenuItem.DoesNotExist:
         return JsonResponse({"status": "error", "message": "Menu item not found"}, status=404)
     except Exception as e:
@@ -25,20 +28,21 @@ def add_to_cart(request):
 @load_custom_user
 def view_cart(request):
     cart = get_user_cart(request.user)
-    return JsonResponse({"status":"success",'cart': cart})
+    cart_items = cart.items.all()
+    cart_items_json = CartItemSerializer(cart_items, many=True)
+    print(cart_items_json.data)
+    
+    return JsonResponse({"status": "success", "cart": cart_items_json.data,"total_price":cart.total_price}, safe=False)
 
 @load_custom_user
 def remove_from_cart(request):
     data = json.loads(request.body)
     item_id =  data.get('item_id')
-    type =  data.get('type')
     cart = get_user_cart(request.user)
-    if type == "remove":
-        remove_item_from_cart(cart, item_id)
-    else:
-        change_itemquantity_to_cart(cart, item_id, quantity=1)
+   
+    upd_quantity = change_itemquantity_to_cart(cart, item_id, quantity=1)
     
-    return JsonResponse({"status":"success",'type': type})
+    return JsonResponse({"status":"success","quantity":upd_quantity, "cart_total": cart.total_items})
 
 @load_custom_user
 def clear_cart_view(request):
@@ -63,8 +67,12 @@ def add_item_to_cart(cart, menu_item_id, quantity=1):
 def change_itemquantity_to_cart(cart, menu_item_id, quantity=1):
     # Reduce item quantity in the cart 
     item = CartItem.objects.get(cart=cart, menu_item_id=menu_item_id)
+    if item.quantity == quantity:
+            item.delete()
+            return 0  
     item.quantity -= quantity
     item.save()
+    return item.quantity
 
 def remove_item_from_cart(cart, menu_item_id):
     # Remove item from the cart

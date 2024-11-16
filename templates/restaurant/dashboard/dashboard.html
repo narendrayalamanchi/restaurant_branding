@@ -81,18 +81,122 @@
         </div>
     </div>
 
+    <!-- Address Popup -->
+    <div id="addressPopup" class="address-popup">
+        <div class="popup-content">
+            <button class="addressPopup-close-btn" onclick="toggleAddressPopup()">×</button>
+            <h2>Addresses</h2>
+            <div class="search-container">
+                <i class="fa-solid fa-search search-icon"></i>
+                <input type="text" class="search-input" id="search-locations" placeholder="Search for an address">
+            </div>
+            <div class="input-group mb-3" style="position: relative;">
+                <div id="suggestions-dropdown">
+                </div>
+            </div>
+            <!-- Add address list here if needed -->
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div id="cartSidebar" class="cart-sidebar">
+        <button class="close-btn" onclick="hideCartSidebar()">×</button>
+        <h2 class="text-center"> Cart  </h2>
+        <p id="cart-total-quantity"> </p>
+        <p id="cart-total-price"> </p>
+
+        <!-- Cart items list -->
+        <div class="cart-items">
+           
+        </div>
+
+        <div class="cart-footer mt-4">
+            <button class="btn btn-primary w-100">Go to Checkout</button>
+            <button class="btn btn-secondary w-100 mt-2" onclick="hideCartSidebar()">Add More Items</button>
+        </div>
+    </div>
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const truncateElements = document.querySelectorAll('.recipe-details');
-            
+            const quantityElements = document.querySelectorAll('.quick-add-quantity');
+
             truncateElements.forEach(element => {
                 const originalText = element.innerText;
                 if (originalText.length > 60) {
                     element.innerText = originalText.substring(0, 60) + '...';
                 }
             });
+
+            quantityElements.forEach(element => {
+                const originalText = element.innerText;
+                if (parseInt(originalText) === 0) {
+                    $(element).hide();
+                    $(element).prev().hide();
+                }
+            });
         });
+
+        // Toggle the display of the address popup
+        function toggleAddressPopup() {
+            const popup = document.getElementById("addressPopup");
+            popup.style.display = (popup.style.display === "none" || popup.style.display === "") ? "flex" : "none";
+        }
+
+        // Add event listener to the delivery address span to open the popup
+        document.getElementById("delivery-address-point").addEventListener("click", toggleAddressPopup);
+
+
+        const input = document.getElementById('search-locations');
+        const suggestionsDropdown = document.getElementById('suggestions-dropdown');
+
+        input.addEventListener('input', async (event) => {
+            const query = event.target.value;
+            suggestionsDropdown.innerHTML = ''
+
+            if (query.length > 2) {
+                const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&countrycodes=us`;
+                const response = await fetch(url);
+                const data = await response.json();
+                //console.log("data",data)
+                const suggestions = data.slice(0, 5); // Limit to top 5 suggestions
+                suggestions.forEach(suggestion => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.className = 'suggestion-item';
+                    suggestionItem.textContent = suggestion.display_name;
+                    
+                    // Click event to populate input and clear dropdown
+                    suggestionItem.addEventListener('click', () => {
+                  
+                        console.log("suggestion",suggestion)
+                       
+                        suggestionsDropdown.innerHTML = ''; // Clear suggestions
+                        
+                    });
+
+                    suggestionsDropdown.appendChild(suggestionItem);
+                });
+            
+            }
+        });
+
+        //Close event when clicking outside of address suggestions dropdown
+        document.addEventListener('click', (event) => {
+            if (!input.contains(event.target) && !suggestionsDropdown.contains(event.target)) {
+                suggestionsDropdown.innerHTML = '';
+            }
+        });
+
+        function toggleCartSidebar() {
+            $("#cartSidebar").addClass("show");
+            displayCartDetails();
+        }
+        
+        function hideCartSidebar(){
+            $("#cartSidebar").removeClass("show");
+        }
 
         function getCookie(name) {
             let cookieValue = null;
@@ -111,28 +215,74 @@
         }
         
         const csrftoken = getCookie('csrftoken');
-
-        function removeitems_to_cart(event){
-         
-            fetch("{% url 'remove_from_cart' %}", {
+        
+        function displayCartDetails(){
+            fetch("{% url 'view_cart' %}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken 
+                    'X-CSRFToken': csrftoken
                 },
-                body: JSON.stringify({
-                    item_id: $(event).attr("item-id")
-                }),
             })
                 .then(response => response.json())
                 .then(data => {
                     if(data.status == "success"){
-                        $(event).prev().text(data.quantity);
+                        const cartItemsContainer = document.querySelector('.cart-items');
+                        cartItemsContainer.innerHTML = '';  // Clear existing items
+        
+                        data.cart.forEach(item => {
+                            const cartItemHTML = `
+                                <div class="cart-item d-flex align-items-center">
+                                    <img src="${item.menu_item.image}" alt="${item.menu_item.name}" class="cart-item-image me-2">
+                                    <div class="cart-item-details">
+                                        <h6 class="m-0">${item.menu_item.name}</h6>
+                                        <span>Quantity: ${item.quantity}</span>
+                                        <span>-Price:$${item.total_price}</span>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            cartItemsContainer.insertAdjacentHTML('beforeend', cartItemHTML);
+                        });
+                        $("#cart-total-quantity").text("Total Items: "+$("#cart-total-quantity-display").text())
+                        $("#cart-total-price").text("Subtotal: $"+data.total_price)
+
                     }
                 })
                 .catch(error => {
                     console.error('Fetch error:', error);
                 });
+        }
+
+        function removeitems_to_cart(event){
+            if(parseInt($(event).next().text()) > 0){
+         
+                fetch("{% url 'remove_from_cart' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken 
+                    },
+                    body: JSON.stringify({
+                        item_id: $(event).attr("item-id")
+                    }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.status == "success"){
+                            $(event).next().text(data.quantity);
+                            if (data.quantity == 0) {
+                                $(event).hide();
+                                $(event).next().hide();
+                            }
+
+                            $("#cart-total-quantity-display").text(data.cart_total);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                    });
+            }
         }
         
         function additems_to_cart(event){
@@ -151,6 +301,10 @@
                 .then(data => {
                     if(data.status == "success"){
                         $(event).prev().text(data.quantity);
+                        $(event).prev().show();
+                        $(event).prev().prev().show();
+                        
+                        $("#cart-total-quantity-display").text(data.cart_total);
                     }
                 })
                 .catch(error => {

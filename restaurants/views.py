@@ -92,4 +92,4 @@ def dashboard(request):
         cart_items = {item.menu_item.id: item.quantity for item in user_cart.items.all()}
     except Cart.DoesNotExist:
         cart_items = {}
-    return render(request, "restaurant/dashboard/dashboard.html", {"menu": menu_items, "cart_items": cart_items})
+    return render(request, "restaurant/dashboard/dashboard.html", {"menu": menu_items, "cart_items": cart_items, "cart_total": user_cart.total_items})

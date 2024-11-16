@@ -52,7 +52,7 @@ class Cart(models.Model):
     @property
     def total_price(self):
         # Returns the total price of all items in the cart
-        return sum(item.total_price for item in self.items.all())
+        return round(sum(item.total_price for item in self.items.all()),2)
 
 
 class CartItem(models.Model):
