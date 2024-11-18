@@ -6,9 +6,7 @@ from admin_dashboard.models import MenuItem
 from .models import RestaurantUsers,Cart,CartItem
 import json
 from .views import load_custom_user
-from django.core import serializers
 from .serializer import CartItemSerializer
-from rest_framework.response import Response
 
 @load_custom_user
 def add_to_cart(request):
@@ -30,7 +28,6 @@ def view_cart(request):
     cart = get_user_cart(request.user)
     cart_items = cart.items.all()
     cart_items_json = CartItemSerializer(cart_items, many=True)
-    print(cart_items_json.data)
     
     return JsonResponse({"status": "success", "cart": cart_items_json.data,"total_price":cart.total_price}, safe=False)
 

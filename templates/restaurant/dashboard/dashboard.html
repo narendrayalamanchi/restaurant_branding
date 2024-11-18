@@ -94,7 +94,9 @@
                 <div id="suggestions-dropdown">
                 </div>
             </div>
-            <!-- Add address list here if needed -->
+            <!-- Display Restaurant Nearby -->
+            <div class="neary-location-list">  
+            </div>  
         </div>
     </div>
 
@@ -149,10 +151,10 @@
         document.getElementById("delivery-address-point").addEventListener("click", toggleAddressPopup);
 
 
-        const input = document.getElementById('search-locations');
+        const locationInput = document.getElementById('search-locations');
         const suggestionsDropdown = document.getElementById('suggestions-dropdown');
 
-        input.addEventListener('input', async (event) => {
+        locationInput.addEventListener('input', async (event) => {
             const query = event.target.value;
             suggestionsDropdown.innerHTML = ''
 
@@ -169,8 +171,29 @@
                     
                     // Click event to populate input and clear dropdown
                     suggestionItem.addEventListener('click', () => {
-                  
+                        locationInput.value = suggestion.display_name;
                         console.log("suggestion",suggestion)
+                        fetch("{% url 'find-nearby-restaurant-locations' %}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrftoken 
+                            },
+                            body: JSON.stringify({
+                                lon: suggestion.lon,
+                                lat: suggestion.lat
+                            }),
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                console.log(data.nearbyLocations)
+                                data.nearbyLocations.forEach(item => {
+                                    $(".neary-location-list").append(`<button class="locationcard-button" key-id=`+item.id+`><i class="fa-solid fa-location-dot"></i>`+item.address+`<span class="select-location" onclick="selectLocation(this)"><i class="fa-solid fa-hand-pointer"></i></span></button>`);
+                                })
+                            })
+                            .catch(error => {
+                                console.error('Fetch error:', error);
+                            });
                        
                         suggestionsDropdown.innerHTML = ''; // Clear suggestions
                         
@@ -184,7 +207,7 @@
 
         //Close event when clicking outside of address suggestions dropdown
         document.addEventListener('click', (event) => {
-            if (!input.contains(event.target) && !suggestionsDropdown.contains(event.target)) {
+            if (!locationInput.contains(event.target) && !suggestionsDropdown.contains(event.target)) {
                 suggestionsDropdown.innerHTML = '';
             }
         });

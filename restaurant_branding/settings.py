@@ -15,11 +15,12 @@ import environ
 import os 
 
 GDAL_LIBRARY_PATH = "C:/OSGeo4W/bin/gdal309.dll"
-env = environ.Env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+env = environ.Env()
+
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'), overwrite=True)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -98,6 +99,14 @@ WSGI_APPLICATION = 'restaurant_branding.wsgi.application'
 #     }
 # }
 
+# Local database config
+# DB_USER=postgres
+# DB_PASSWORD=KAMAFACT/579
+# DB_HOST=localhost
+# Production
+# DB_USER=postgres
+# DB_PASSWORD=CqBhyxhlNDn6z3YGIgQR
+# DB_HOST=mydbinstance-1.cfmyeeekgn27.us-east-2.rds.amazonaws.com
 DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.postgresql',

@@ -1,6 +1,16 @@
 from rest_framework import serializers
 from .models import CartItem
-from admin_dashboard.models import MenuItem
+from admin_dashboard.models import MenuItem,BrandAddress
+
+class BrandAddressSerializer(serializers.ModelSerializer):
+    distance = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BrandAddress
+        fields = ['id','address', 'distance']
+
+    def get_distance(self, obj):
+        return f'{obj.distance.mi:.2f} miles' if hasattr(obj.distance, 'mi') else None
 
 class MenuItemSerializer(serializers.ModelSerializer):
     class Meta:

@@ -8,6 +8,11 @@ from django.http import JsonResponse
 from .models import RestaurantUsers,UserAddress,Cart, CartItem
 from .forms import SignupForm,LoginForm
 from django.contrib.auth import logout
+import json
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
+from django.contrib.gis.db.models.functions import Distance
+from .serializer import BrandAddressSerializer
 
 def load_custom_user(view_func):
     def wrapper(request, *args, **kwargs):
@@ -93,3 +98,26 @@ def dashboard(request):
     except Cart.DoesNotExist:
         cart_items = {}
     return render(request, "restaurant/dashboard/dashboard.html", {"menu": menu_items, "cart_items": cart_items, "cart_total": user_cart.total_items})
+
+from django.core.serializers import serialize
+
+def findnearybylocations(request):
+    data = json.loads(request.body)
+    lon =  data.get('lon')
+    lat =  data.get('lat')
+    # Convert coordinates to Point
+    location = Point(float(lon), float(lat))
+
+    # Query locations within 10 miles
+    addresses_within_radius = brand_models.BrandAddress.objects.filter(
+        brand__id=request.session["brand"], 
+        location__distance_lte=(location, D(mi=10))  
+    ).annotate(
+        distance=Distance('location', location)  
+    ).order_by('distance') 
+
+    for address in addresses_within_radius:
+        print(f"Address: {address.address}, Distance: {address.distance.mi:.2f} miles")
+    
+    json_data = BrandAddressSerializer(addresses_within_radius, many=True)
+    return JsonResponse({"status":"success", "nearbyLocations":json_data.data})

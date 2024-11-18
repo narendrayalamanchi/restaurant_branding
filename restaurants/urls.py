@@ -7,6 +7,7 @@ urlpatterns = [
     path('signup/', views.signup, name='res_signup'),
     path('signout/', views.signout, name='res_signout'),
     path('dashboard/', views.dashboard, name='res_dashboard'),
+    path('findnearybylocations/', views.findnearybylocations, name='find-nearby-restaurant-locations'),
 
     # Cart Logic
     path('cartview/', cart.view_cart, name='view_cart'),

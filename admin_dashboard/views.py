@@ -126,7 +126,8 @@ def update_category_order(request):
         return JsonResponse({'success': False, 'error': str(e)})
 
 def menu(request):
-    menu_items = MenuItem.objects.filter(category__brand=request.session["brand"]).order_by('category__order','order')
+    # menu_items = MenuItem.objects.filter(category__brand=request.session["brand"]).order_by('category__order','order')
+    menu_items = MenuItem.objects.filter(category__brand=request.session["brand"]).order_by('category__order','order').select_related('category')
     return render(request, "brand_dashboard/menu.html", {"menu": menu_items})
 
 def locations(request):

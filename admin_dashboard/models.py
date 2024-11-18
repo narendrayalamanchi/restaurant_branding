@@ -30,7 +30,7 @@ class BrandAddress(models.Model):
 
 class BrandUsers(models.Model):
     username = models.CharField(max_length=20)
-    email = models.EmailField(max_length=50)
+    email = models.EmailField(max_length=50,unique=True, db_index=True)
     password = models.CharField(max_length=128)
     brand = models.ForeignKey(BrandsDetails, on_delete=models.CASCADE)
 
@@ -68,10 +68,11 @@ class MenuItem(models.Model):
     def __str__(self):
         return self.name
     class Meta:
+        # Composite indexing
+        # indexes = [
+        #     models.Index(fields=['last_name', 'date_of_birth']),
+        # ] 
         db_table = 'Menu_items'
-
-
-
 
 
 
